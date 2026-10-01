@@ -9,3 +9,4 @@
 
 ## النشر
 أضف متغيري VITE_SUPABASE_URL و VITE_SUPABASE_PUBLISHABLE_KEY في إعدادات الاستضافة.
+Deployment update
