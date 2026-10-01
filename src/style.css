@@ -631,3 +631,237 @@ main {
     padding: 9px;
   }
 }
+
+/* =========================
+   نموذج إضافة سيارة
+========================= */
+
+.add-vehicle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 12px;
+  padding: 12px 20px;
+  background: #1769ff;
+  color: #fff;
+  font-family: "Tajawal", Arial, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.add-vehicle-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(23, 105, 255, 0.22);
+}
+
+.add-vehicle-btn svg {
+  width: 19px;
+  height: 19px;
+}
+
+/* خلفية النافذة */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(3px);
+}
+
+/* نافذة إضافة السيارة */
+.modal {
+  width: min(720px, 100%);
+  max-height: 92vh;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 22px;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.22);
+  direction: rtl;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 24px;
+  border-bottom: 1px solid #e8edf5;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 22px;
+  color: #14213d;
+}
+
+.close-btn {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 11px;
+  background: #f3f6fb;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.close-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.close-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* الحقول */
+.vehicle-form {
+  padding: 24px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.form-group.full {
+  grid-column: 1 / -1;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  height: 48px;
+  border: 1px solid #dbe3ef;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 0 14px;
+  font-family: "Tajawal", Arial, sans-serif;
+  font-size: 15px;
+  color: #14213d;
+  outline: none;
+  transition: 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: #1769ff;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(23, 105, 255, 0.1);
+}
+
+/* أزرار النموذج */
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-start;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e8edf5;
+}
+
+.save-btn,
+.cancel-btn {
+  min-width: 125px;
+  height: 46px;
+  border-radius: 12px;
+  border: 0;
+  font-family: "Tajawal", Arial, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.save-btn {
+  background: #1769ff;
+  color: #fff;
+}
+
+.save-btn:hover {
+  background: #0958e8;
+}
+
+.save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cancel-btn {
+  background: #eef2f7;
+  color: #475569;
+}
+
+/* رسالة النجاح أو الخطأ */
+.form-message {
+  margin-top: 15px;
+  padding: 12px 15px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.form-message.success {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.form-message.error {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* الجوال */
+@media (max-width: 700px) {
+  .modal-overlay {
+    padding: 10px;
+  }
+
+  .modal {
+    border-radius: 16px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-group.full {
+    grid-column: auto;
+  }
+
+  .modal-header,
+  .vehicle-form {
+    padding: 18px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .save-btn,
+  .cancel-btn {
+    width: 100%;
+  }
+}
