@@ -1,4 +1,4 @@
-import saadaLogo from "./saada-logo.jpg.jpg";import React,{useEffect,useMemo,useState}from'react';import{createRoot}from'react-dom/client';import{createClient}from'@supabase/supabase-js';import{Car,LayoutDashboard,Route,TriangleAlert,Wrench,Wallet,Search,ShieldCheck,Plus,X,Trash2,Pencil,LogOut,LockKeyhole}from'lucide-react';import'./style.css';
+import React,{useEffect,useMemo,useState}from'react';import{createRoot}from'react-dom/client';import{createClient}from'@supabase/supabase-js';import{Car,LayoutDashboard,Route,TriangleAlert,Wrench,Wallet,Search,ShieldCheck,Plus,X,Trash2,Pencil,LogOut,LockKeyhole}from'lucide-react';import'./style.css';
 const sb=createClient(import.meta.env.VITE_SUPABASE_URL,import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY);
 const fmt=d=>d?new Date(d+'T00:00:00').toLocaleDateString('ar-SA'):'-';const days=d=>d?Math.ceil((new Date(d+'T00:00:00')-new Date())/86400000):99999;
 const sections=[['dashboard','لوحة التحكم',LayoutDashboard],['vehicles','السيارات',Car],['trips','الحركات',Route],['violations','المخالفات',TriangleAlert],['maintenance','الصيانة',Wrench],['accounts','الحسابات',Wallet]];
