@@ -9,7 +9,9 @@ import {
   Wrench,
   Wallet,
   Search,
-  ShieldCheck
+  ShieldCheck,
+  Plus,
+  X
 } from "lucide-react";
 
 import "./style.css";
@@ -19,10 +21,12 @@ const supabase = createClient(
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
 );
 
-const daysLeft = (date) =>
-  Math.ceil(
+const daysLeft = (date) => {
+  if (!date) return "-";
+  return Math.ceil(
     (new Date(date + "T00:00:00") - new Date()) / 86400000
   );
+};
 
 const formatDate = (date) =>
   date
@@ -33,24 +37,90 @@ const formatDate = (date) =>
       })
     : "-";
 
+const emptyForm = {
+  vehicle_name: "",
+  plate_number: "",
+  plate_letters: "",
+  serial_number: "",
+  model_year: "",
+  driver_name: "",
+  registration_expiry: "",
+  insurance_expiry: ""
+};
+
 function App() {
   const [vehicles, setVehicles] = useState([]);
   const [search, setSearch] = useState("");
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [showForm, setShowForm] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState(emptyForm);
 
-  useEffect(() => {
-    supabase
+  const loadVehicles = async () => {
+    setError("");
+
+    const { data, error } = await supabase
       .from("vehicles")
       .select("*")
-      .order("id")
-      .then(({ data, error }) => {
-        if (error) {
-          setError(error.message);
-        } else {
-          setVehicles(data || []);
-        }
-      });
+      .order("id");
+
+    if (error) {
+      setError(error.message);
+    } else {
+      setVehicles(data || []);
+    }
+  };
+
+  useEffect(() => {
+    loadVehicles();
   }, []);
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+
+    setForm((current) => ({
+      ...current,
+      [name]: value
+    }));
+  };
+
+  const addVehicle = async (event) => {
+    event.preventDefault();
+
+    setSaving(true);
+    setError("");
+    setMessage("");
+
+    const newVehicle = {
+      vehicle_name: form.vehicle_name.trim(),
+      plate_number: form.plate_number.trim(),
+      plate_letters: form.plate_letters.trim(),
+      serial_number: form.serial_number.trim(),
+      model_year: form.model_year
+        ? Number(form.model_year)
+        : null,
+      driver_name: form.driver_name.trim() || null,
+      registration_expiry: form.registration_expiry,
+      insurance_expiry: form.insurance_expiry
+    };
+
+    const { error } = await supabase
+      .from("vehicles")
+      .insert([newVehicle]);
+
+    if (error) {
+      setError("تعذر إضافة السيارة: " + error.message);
+      setSaving(false);
+      return;
+    }
+
+    setMessage("تمت إضافة السيارة بنجاح");
+    setForm(emptyForm);
+    setShowForm(false);
+    await loadVehicles();
+    setSaving(false);
+  };
 
   const filteredVehicles = vehicles.filter((vehicle) =>
     [
@@ -60,21 +130,31 @@ function App() {
       vehicle.serial_number,
       vehicle.driver_name
     ]
+      .filter(Boolean)
       .join(" ")
-      .includes(search)
+      .toLowerCase()
+      .includes(search.toLowerCase())
   );
 
-  const expiringSoon = vehicles.filter(
-    (vehicle) =>
-      Math.min(
-        daysLeft(vehicle.registration_expiry),
-        daysLeft(vehicle.insurance_expiry)
-      ) <= 90
-  ).length;
+  const expiringSoon = vehicles.filter((vehicle) => {
+    const registrationDays = daysLeft(
+      vehicle.registration_expiry
+    );
+
+    const insuranceDays = daysLeft(
+      vehicle.insurance_expiry
+    );
+
+    return (
+      (typeof registrationDays === "number" &&
+        registrationDays <= 90) ||
+      (typeof insuranceDays === "number" &&
+        insuranceDays <= 90)
+    );
+  }).length;
 
   return (
     <div className="app">
-
       <aside>
         <div className="brand">
           <div className="logo">
@@ -125,18 +205,18 @@ function App() {
       </aside>
 
       <main>
-
         <section className="hero">
           <ShieldCheck />
 
           <div>
-            <h2>كل الرخص والتأمينات سارية</h2>
-            <p>متابعة تلقائية لمواعيد الاستمارة والتأمين</p>
+            <h2>متابعة مركبات المركز</h2>
+            <p>
+              متابعة تلقائية لمواعيد الاستمارة والتأمين
+            </p>
           </div>
         </section>
 
         <section className="stats">
-
           <div>
             <Car />
             <b>{vehicles.length}</b>
@@ -154,12 +234,162 @@ function App() {
             <b>0</b>
             <span>سيارات في مشوار</span>
           </div>
-
         </section>
 
-        <div className="title">
+        <div className="title vehicle-title">
           <h2>السيارات</h2>
+
+          <button
+            className="add-vehicle-btn"
+            onClick={() => {
+              setShowForm(true);
+              setMessage("");
+              setError("");
+            }}
+          >
+            <Plus size={20} />
+            إضافة سيارة
+          </button>
         </div>
+
+        {message && (
+          <p className="success-message">{message}</p>
+        )}
+
+        {error && (
+          <p className="error">
+            {error}
+          </p>
+        )}
+
+        {showForm && (
+          <div className="vehicle-form-box">
+            <div className="form-heading">
+              <h3>إضافة سيارة جديدة</h3>
+
+              <button
+                type="button"
+                className="close-form"
+                onClick={() => setShowForm(false)}
+              >
+                <X />
+              </button>
+            </div>
+
+            <form
+              className="vehicle-form"
+              onSubmit={addVehicle}
+            >
+              <label>
+                نوع / اسم السيارة
+                <input
+                  name="vehicle_name"
+                  value={form.vehicle_name}
+                  onChange={handleChange}
+                  placeholder="مثال: تويوتا ميكرو باص"
+                  required
+                />
+              </label>
+
+              <label>
+                رقم اللوحة
+                <input
+                  name="plate_number"
+                  value={form.plate_number}
+                  onChange={handleChange}
+                  placeholder="1842"
+                  required
+                />
+              </label>
+
+              <label>
+                حروف اللوحة
+                <input
+                  name="plate_letters"
+                  value={form.plate_letters}
+                  onChange={handleChange}
+                  placeholder="ب ط س"
+                  required
+                />
+              </label>
+
+              <label>
+                الرقم التسلسلي
+                <input
+                  name="serial_number"
+                  value={form.serial_number}
+                  onChange={handleChange}
+                  required
+                />
+              </label>
+
+              <label>
+                سنة الصنع
+                <input
+                  type="number"
+                  name="model_year"
+                  value={form.model_year}
+                  onChange={handleChange}
+                  min="1900"
+                  max="2100"
+                  required
+                />
+              </label>
+
+              <label>
+                اسم السائق
+                <input
+                  name="driver_name"
+                  value={form.driver_name}
+                  onChange={handleChange}
+                  placeholder="اختياري"
+                />
+              </label>
+
+              <label>
+                تاريخ انتهاء الاستمارة
+                <input
+                  type="date"
+                  name="registration_expiry"
+                  value={form.registration_expiry}
+                  onChange={handleChange}
+                  required
+                />
+              </label>
+
+              <label>
+                تاريخ نهاية التأمين
+                <input
+                  type="date"
+                  name="insurance_expiry"
+                  value={form.insurance_expiry}
+                  onChange={handleChange}
+                  required
+                />
+              </label>
+
+              <div className="form-actions">
+                <button
+                  type="submit"
+                  className="save-vehicle"
+                  disabled={saving}
+                >
+                  {saving
+                    ? "جاري الحفظ..."
+                    : "حفظ السيارة"}
+                </button>
+
+                <button
+                  type="button"
+                  className="cancel-vehicle"
+                  onClick={() => setShowForm(false)}
+                >
+                  إلغاء
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
 
         <div className="search">
           <Search />
@@ -167,24 +397,16 @@ function App() {
           <input
             placeholder="بحث بالنوع أو اللوحة أو السائق"
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(event) =>
+              setSearch(event.target.value)
+            }
           />
         </div>
 
-        {error && (
-          <p className="error">
-            تعذر تحميل البيانات: {error}
-          </p>
-        )}
-
         <div className="grid">
-
           {filteredVehicles.map((vehicle) => (
-
             <article className="card" key={vehicle.id}>
-
               <div className="top">
-
                 <div>
                   <h3>{vehicle.vehicle_name}</h3>
 
@@ -195,7 +417,8 @@ function App() {
                   </p>
 
                   <p>
-                    {vehicle.driver_name || "لا يوجد سائق"}
+                    {vehicle.driver_name ||
+                      "لا يوجد سائق"}
                   </p>
                 </div>
 
@@ -203,65 +426,67 @@ function App() {
                   <b>{vehicle.plate_number}</b>
                   <span>{vehicle.plate_letters}</span>
                 </div>
-
               </div>
 
               <div className="date">
-
                 <span>
                   انتهاء الاستمارة
                   <br />
                   <b>
-                    {formatDate(vehicle.registration_expiry)}
+                    {formatDate(
+                      vehicle.registration_expiry
+                    )}
                   </b>
                 </span>
 
                 <em
                   className={
-                    daysLeft(vehicle.registration_expiry) <= 90
+                    daysLeft(
+                      vehicle.registration_expiry
+                    ) <= 90
                       ? "warn"
                       : ""
                   }
                 >
                   باقي{" "}
-                  {daysLeft(vehicle.registration_expiry)}{" "}
+                  {daysLeft(
+                    vehicle.registration_expiry
+                  )}{" "}
                   يوم
                 </em>
-
               </div>
 
               <div className="date">
-
                 <span>
                   نهاية التأمين
                   <br />
                   <b>
-                    {formatDate(vehicle.insurance_expiry)}
+                    {formatDate(
+                      vehicle.insurance_expiry
+                    )}
                   </b>
                 </span>
 
                 <em
                   className={
-                    daysLeft(vehicle.insurance_expiry) <= 90
+                    daysLeft(
+                      vehicle.insurance_expiry
+                    ) <= 90
                       ? "warn"
                       : ""
                   }
                 >
                   باقي{" "}
-                  {daysLeft(vehicle.insurance_expiry)}{" "}
+                  {daysLeft(
+                    vehicle.insurance_expiry
+                  )}{" "}
                   يوم
                 </em>
-
               </div>
-
             </article>
-
           ))}
-
         </div>
-
       </main>
-
     </div>
   );
 }
